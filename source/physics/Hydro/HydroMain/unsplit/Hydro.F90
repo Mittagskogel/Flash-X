@@ -217,13 +217,13 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
   type(c_funptr) :: cptr
 
   cptr = c_funloc(hy_computeFluxes_fluxbuf)
-  ! cptr = f__raptor_truncate_op_func(cptr, TRUNC_FROM, 1, 11, 24)
-  cptr = f__raptor_truncate_op_func_ieee(cptr, TRUNC_FROM, 0, 16)
+  cptr = f__raptor_truncate_op_func(cptr, TRUNC_FROM, 1, TRUNC_TO_E, TRUNC_TO_M)
+  ! cptr = f__raptor_truncate_op_func_ieee(cptr, TRUNC_FROM, 0, 32)
   call c_f_procpointer(cptr, tr_computeFluxes)
 
   cptr = c_funloc(hy_updateSolution_fluxbuf)
-  ! cptr = f__raptor_truncate_op_func(cptr, TRUNC_FROM, 1, 11, 24)
-  cptr = f__raptor_truncate_op_func_ieee(cptr, TRUNC_FROM, 0, 16)
+  cptr = f__raptor_truncate_op_func(cptr, TRUNC_FROM, 1, TRUNC_TO_E, TRUNC_TO_M)
+  ! cptr = f__raptor_truncate_op_func_ieee(cptr, TRUNC_FROM, 0, 32)
   call c_f_procpointer(cptr, tr_updateSolution)
 
 
