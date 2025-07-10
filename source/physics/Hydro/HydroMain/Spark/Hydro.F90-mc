@@ -32,7 +32,7 @@
 module truncate_Hydro
   implicit none
   interface
-     function f__enzyme_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -41,7 +41,7 @@ module truncate_Hydro
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_truncate_mem_value
+     end function f__raptor_truncate_mem_value
   end interface
 
   interface
@@ -92,8 +92,9 @@ module truncate_Hydro
   end interface
 
   public :: truncate_0d, truncate_1d, truncate_2d, truncate_3d, truncate_4d
-  public :: f__enzyme_truncate_mem_func_hydro_advance
-  public :: f__enzyme_truncate_mem_func_hy_rk_correctfluxes
+  public :: expand_0d, expand_1d, expand_2d, expand_3d, expand_4d
+  ! public :: f__enzyme_truncate_mem_func_hydro_advance
+  ! public :: f__enzyme_truncate_mem_func_hy_rk_correctfluxes
   contains
     subroutine truncate_1d(x)
       real, intent(inout) :: x(:)
@@ -102,7 +103,7 @@ module truncate_Hydro
       n = size(x)
 
       do i=1,n
-         x(i) = f__enzyme_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+         x(i) = f__raptor_truncate_mem_value_d(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
       end do
     end subroutine truncate_1d
 
@@ -149,7 +150,7 @@ module truncate_Hydro
       n = size(x)
 
       do i=1,n
-         x(i) = f__enzyme_expand_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+         x(i) = f__raptor_expand_mem_value_d(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
       end do
     end subroutine expand_1d
 
@@ -196,7 +197,7 @@ module truncate_Hydro
       n = size(x)
 
       do i=1,n
-         x(i) = enzyme_fprt_gc_mark_seen(x(i))
+         x(i) = raptor_fprt_gc_mark_seen(x(i))
       end do
     end subroutine mark_seen_1d
 
@@ -236,103 +237,103 @@ module truncate_Hydro
       x = reshape(tmp, [size(x, 1), size(x, 2), size(x, 3), size(x, 4)])
     end subroutine mark_seen_4d
 
-    subroutine f__enzyme_truncate_mem_func_hydro_advance(from, to_e, to_m, &
-         stage_in, Uin, dt, dtOld, &
-         hy_starState, hy_tmpState, &
-         hy_flx, hy_fly, hy_flz, &
-         hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ, &
-         hy_grav, hy_flat3d, &
-         hy_rope, hy_flux, hy_uPlus, hy_uMinus, &
-         deltas, &
-         blkLimits, blkLimitsGC, &
-         lo, loGC, &
-         hy_xCenter, hy_yCenter, hy_zCenter, &
-         hy_xLeft, hy_xRight, hy_yLeft, hy_yRight, &
-         hy_fareaX, hy_fareaY, hy_fareaZ, hy_cvol)
+!     subroutine f__enzyme_truncate_mem_func_hydro_advance(from, to_e, to_m, &
+!          stage_in, Uin, dt, dtOld, &
+!          hy_starState, hy_tmpState, &
+!          hy_flx, hy_fly, hy_flz, &
+!          hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ, &
+!          hy_grav, hy_flat3d, &
+!          hy_rope, hy_flux, hy_uPlus, hy_uMinus, &
+!          deltas, &
+!          blkLimits, blkLimitsGC, &
+!          lo, loGC, &
+!          hy_xCenter, hy_yCenter, hy_zCenter, &
+!          hy_xLeft, hy_xRight, hy_yLeft, hy_yRight, &
+!          hy_fareaX, hy_fareaY, hy_fareaZ, hy_cvol)
 
-#include "Simulation.h"
-#include "constants.h"
-#include "Spark.h"
+! #include "Simulation.h"
+! #include "constants.h"
+! #include "Spark.h"
 
-      implicit none
+!       implicit none
 
-      integer, intent(in) :: from, to_e, to_m
+!       integer, intent(in) :: from, to_e, to_m
 
-      integer, intent(IN) :: stage_in, lo(3), loGC(3)
-      real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(IN OUT) :: Uin
-      real, intent(IN) :: dt, dtold
-      real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(IN OUT) :: hy_starState
-      real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(OUT) :: hy_flx, hy_fly, hy_flz
-      real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(IN) :: hy_tmpState
-      real, dimension(1:, lo(1):, lo(2):, lo(3):), intent(OUT) :: hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ
-      real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(OUT) :: hy_rope, hy_flux, hy_uPlus, hy_uMinus
-      real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(OUT) :: hy_grav
-      real, dimension(loGC(1):, loGC(2):, loGC(3):), intent(OUT) :: hy_flat3d
+!       integer, intent(IN) :: stage_in, lo(3), loGC(3)
+!       real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(IN OUT) :: Uin
+!       real, intent(IN) :: dt, dtold
+!       real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(IN OUT) :: hy_starState
+!       real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(OUT) :: hy_flx, hy_fly, hy_flz
+!       real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(IN) :: hy_tmpState
+!       real, dimension(1:, lo(1):, lo(2):, lo(3):), intent(OUT) :: hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ
+!       real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(OUT) :: hy_rope, hy_flux, hy_uPlus, hy_uMinus
+!       real, dimension(1:, loGC(1):, loGC(2):, loGC(3):), intent(OUT) :: hy_grav
+!       real, dimension(loGC(1):, loGC(2):, loGC(3):), intent(OUT) :: hy_flat3d
 
-      integer, dimension(LOW:HIGH, MDIM), intent(IN) :: blkLimits, blkLimitsGC
+!       integer, dimension(LOW:HIGH, MDIM), intent(IN) :: blkLimits, blkLimitsGC
 
-      real, dimension(MDIM), intent(IN)  :: deltas
-      real, dimension(loGC(1):), intent(IN) :: hy_xCenter
-      real, dimension(loGC(2):), intent(IN) :: hy_yCenter
-      real, dimension(loGC(3):), intent(IN) :: hy_zCenter
-      real, dimension(loGC(1):), intent(IN) :: hy_xLeft, hy_xRight
-      real, dimension(loGC(2):), intent(IN) :: hy_yLeft, hy_yRight
-      real, dimension(loGC(1):, loGC(2):, loGC(3):), intent(IN) :: hy_fareaX, hy_fareaY, hy_fareaZ, hy_cvol
+!       real, dimension(MDIM), intent(IN)  :: deltas
+!       real, dimension(loGC(1):), intent(IN) :: hy_xCenter
+!       real, dimension(loGC(2):), intent(IN) :: hy_yCenter
+!       real, dimension(loGC(3):), intent(IN) :: hy_zCenter
+!       real, dimension(loGC(1):), intent(IN) :: hy_xLeft, hy_xRight
+!       real, dimension(loGC(2):), intent(IN) :: hy_yLeft, hy_yRight
+!       real, dimension(loGC(1):, loGC(2):, loGC(3):), intent(IN) :: hy_fareaX, hy_fareaY, hy_fareaZ, hy_cvol
 
-      call Hydro_advance(stage_in, Uin, dt, dtOld, &
-           hy_starState, hy_tmpState, &
-           hy_flx, hy_fly, hy_flz, &
-           hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ, &
-           hy_grav, hy_flat3d, &
-           hy_rope, hy_flux, hy_uPlus, hy_uMinus, &
-           deltas, &
-           blkLimits, blkLimitsGC, &
-           lo, loGC, &
-           hy_xCenter, hy_yCenter, hy_zCenter, &
-           hy_xLeft, hy_xRight, hy_yLeft, hy_yRight, &
-           hy_fareaX, hy_fareaY, hy_fareaZ, hy_cvol)
-    end subroutine f__enzyme_truncate_mem_func_hydro_advance
+!       call Hydro_advance(stage_in, Uin, dt, dtOld, &
+!            hy_starState, hy_tmpState, &
+!            hy_flx, hy_fly, hy_flz, &
+!            hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ, &
+!            hy_grav, hy_flat3d, &
+!            hy_rope, hy_flux, hy_uPlus, hy_uMinus, &
+!            deltas, &
+!            blkLimits, blkLimitsGC, &
+!            lo, loGC, &
+!            hy_xCenter, hy_yCenter, hy_zCenter, &
+!            hy_xLeft, hy_xRight, hy_yLeft, hy_yRight, &
+!            hy_fareaX, hy_fareaY, hy_fareaZ, hy_cvol)
+!     end subroutine f__enzyme_truncate_mem_func_hydro_advance
 
-    subroutine f__enzyme_truncate_mem_func_hy_rk_correctfluxes(from, to_e, to_m, &
-         Uin, blkLimits, &
-         fluxBufX, fluxBufY, fluxBufZ, &
-         deltas, fareaX, fareaY, fareaZ, cvol, xCenter, &
-         xLeft, xRight, yLeft, yRight, &
-         geometry, &
-         smalle, smalld, &
-         dt, isFlux, &
-         lo, loGC)
+!     subroutine f__enzyme_truncate_mem_func_hy_rk_correctfluxes(from, to_e, to_m, &
+!          Uin, blkLimits, &
+!          fluxBufX, fluxBufY, fluxBufZ, &
+!          deltas, fareaX, fareaY, fareaZ, cvol, xCenter, &
+!          xLeft, xRight, yLeft, yRight, &
+!          geometry, &
+!          smalle, smalld, &
+!          dt, isFlux, &
+!          lo, loGC)
 
-      implicit none
+!       implicit none
 
-#include "Simulation.h"
-#include "constants.h"
-#include "Spark.h"
-#include "Eos.h"
+! #include "Simulation.h"
+! #include "constants.h"
+! #include "Spark.h"
+! #include "Eos.h"
 
-      integer, intent(in) :: from, to_e, to_m
+!       integer, intent(in) :: from, to_e, to_m
 
-      integer, intent(IN) :: geometry, lo(3), loGC(3)
-      real, pointer :: Uin(:, :, :, :)
-      real, dimension(1:, lo(1):, lo(2):, lo(3):), intent(IN) :: fluxBufX, fluxBufY, fluxBufZ
-      integer, dimension(LOW:HIGH, MDIM), intent(IN) :: blkLimits
-      real, dimension(loGC(1):, loGC(2):, loGC(3):), intent(IN) :: fareaX, fareaY, fareaZ, cvol
-      real, dimension(loGC(1):), intent(IN) :: xCenter, xLeft, xRight
-      real, dimension(loGC(2):), intent(IN) :: yLeft, yRight
-      real, dimension(MDIM), intent(IN)  :: deltas
-      real, intent(IN) :: smalle, smalld, dt
+!       integer, intent(IN) :: geometry, lo(3), loGC(3)
+!       real, pointer :: Uin(:, :, :, :)
+!       real, dimension(1:, lo(1):, lo(2):, lo(3):), intent(IN) :: fluxBufX, fluxBufY, fluxBufZ
+!       integer, dimension(LOW:HIGH, MDIM), intent(IN) :: blkLimits
+!       real, dimension(loGC(1):, loGC(2):, loGC(3):), intent(IN) :: fareaX, fareaY, fareaZ, cvol
+!       real, dimension(loGC(1):), intent(IN) :: xCenter, xLeft, xRight
+!       real, dimension(loGC(2):), intent(IN) :: yLeft, yRight
+!       real, dimension(MDIM), intent(IN)  :: deltas
+!       real, intent(IN) :: smalle, smalld, dt
 
-      logical, intent(IN) :: isFlux
+!       logical, intent(IN) :: isFlux
 
-      call hy_rk_correctFluxes(Uin, blkLimits, &
-                               fluxBufX, fluxBufY, fluxBufZ, &
-                               deltas, fareaX, fareaY, fareaZ, cvol, xCenter, &
-                               xLeft, xRight, yLeft, yRight, &
-                               geometry, &
-                               smalle, smalld, &
-                               dt, isFlux, &
-                               lo, loGC)
-    end subroutine f__enzyme_truncate_mem_func_hy_rk_correctfluxes
+!       call hy_rk_correctFluxes(Uin, blkLimits, &
+!                                fluxBufX, fluxBufY, fluxBufZ, &
+!                                deltas, fareaX, fareaY, fareaZ, cvol, xCenter, &
+!                                xLeft, xRight, yLeft, yRight, &
+!                                geometry, &
+!                                smalle, smalld, &
+!                                dt, isFlux, &
+!                                lo, loGC)
+!     end subroutine f__enzyme_truncate_mem_func_hy_rk_correctfluxes
 end module truncate_Hydro
 
 
@@ -390,7 +391,7 @@ subroutine Hydro(timeEndAdv, dt, dtOld, sweepOrder)
                               hy_rk_saveFluxBuf
 
   ! Enzyme truncate Hydro functions
-  use truncate_Hydro
+  !use truncate_Hydro
   ! Enzyme truncate Eos module
   use Eos_data, ONLY : eos_gasConstant, eos_gamma, &
        eos_singleSpeciesA, eos_singleSpeciesZ, eos_truncate
@@ -432,6 +433,28 @@ subroutine Hydro(timeEndAdv, dt, dtOld, sweepOrder)
 
   ! Enzyme trunc mem variables
   real :: trunc_dt, trunc_dtOld
+
+
+  !RAPTOR wrapper interfaces
+  interface
+     function f__raptor_truncate_mem_func(tfunc, from_ieee, to_type, to_exponent, to_significand) &
+          result (fty) bind (c)
+       use iso_c_binding
+       implicit none
+
+       integer(c_int), intent(in), value :: from_ieee, to_type, to_exponent, to_significand
+       type(c_funptr), intent(in), value :: tfunc
+       type(c_funptr) :: fty
+     end function f__raptor_truncate_mem_func
+  end interface
+
+  procedure(Hydro_advance), pointer :: tr_Hydro_advance
+  type(c_funptr) :: cptr
+
+  cptr = c_funloc(Hydro_advance)
+  cptr = f__raptor_truncate_mem_func(cptr, TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+  call c_f_procpointer(cptr, tr_Hydro_advance)
+
 
   if (.NOT. hy_useHydro) return
 
@@ -570,11 +593,23 @@ subroutine Hydro(timeEndAdv, dt, dtOld, sweepOrder)
         call truncate_0d(hy_alphaGLM)
         call truncate_1d(hy_weights)
 
-        call enzyme_fprt_op_clear();
+        call raptor_fprt_op_clear();
 
         eos_truncate = .true.
-        call f__enzyme_truncate_mem_func_hydro_advance(TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M, &
-             stage, Uin, trunc_dt, trunc_dtOld, &
+        ! call f__enzyme_truncate_mem_func_hydro_advance(TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M, &
+        !      stage, Uin, trunc_dt, trunc_dtOld, &
+        !      hy_starState, hy_tmpState, &
+        !      hy_flx, hy_fly, hy_flz, &
+        !      hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ, &
+        !      hy_grav, hy_flat3d, &
+        !      hy_rope, hy_flux, hy_uPlus, hy_uMinus, &
+        !      deltas, &
+        !      blkLimits, blkLimitsGC, &
+        !      lo, loGC, &
+        !      hy_xCenter, hy_yCenter, hy_zCenter, &
+        !      hy_xLeft, hy_xRight, hy_yLeft, hy_yRight, &
+        !      hy_fareaX, hy_fareaY, hy_fareaZ, hy_cvol)
+        call tr_Hydro_advance(stage, Uin, trunc_dt, trunc_dtOld, &
              hy_starState, hy_tmpState, &
              hy_flx, hy_fly, hy_flz, &
              hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ, &
@@ -588,8 +623,8 @@ subroutine Hydro(timeEndAdv, dt, dtOld, sweepOrder)
              hy_fareaX, hy_fareaY, hy_fareaZ, hy_cvol)
         eos_truncate = .false.
 
-        call enzyme_fprt_op_dump_status(12)
-        ! call enzyme_fprt_gc_dump_status()
+        call raptor_fprt_op_dump_status(12)
+        ! call raptor_fprt_gc_dump_status()
 
         ! Expand function arguments
         call expand_4d(Uin)
@@ -634,8 +669,8 @@ subroutine Hydro(timeEndAdv, dt, dtOld, sweepOrder)
         call expand_0d(hy_alphaGLM)
         call expand_1d(hy_weights)
 
-        call enzyme_fprt_gc_doit()
-        ! call enzyme_fprt_gc_dump_status()
+        call raptor_fprt_gc_doit()
+        ! call raptor_fprt_gc_dump_status()
 
 #else
         call Hydro_advance(stage, Uin, dt, dtOld, &
