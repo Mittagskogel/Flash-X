@@ -35,55 +35,6 @@
 #include "constants.h"
 #include "UHD.h"
 
-! module truncate_Hydro
-!   use Grid_tile
-!   use hy_interface
-
-!   implicit none
-!   public :: f__raptor_truncate_op_func_hy_computeFluxes_fluxbuf
-!   public :: f__raptor_truncate_op_func_hy_updateSolution_fluxbuf
-! contains
-
-!   subroutine f__raptor_truncate_op_func_hy_computeFluxes_fluxbuf(from, to_e, to_m, &
-!        tileDesc, flx,fly,flz,lo, Uin, Uout, del,timeEndAdv,dt,dtOld,sweepOrder)
-!     implicit none
-
-!     integer, intent(in) :: from, to_e, to_m
-
-!     type(Grid_tile_t), intent(IN)     :: tileDesc
-!     integer,intent(IN) :: lo(3)
-!     real,intent(OUT),dimension(1:, lo(1): ,lo(2): ,lo(3): ) :: flx, fly, flz
-!     real,pointer,dimension(:,:,:,:)   :: Uin
-!     real,pointer,dimension(:,:,:,:)   :: Uout
-!     real,dimension(MDIM),intent(IN)   :: del
-!     real,    intent(IN)               :: timeEndAdv, dt, dtOld
-!     integer, intent(in)               :: sweepOrder
-
-!     call hy_computeFluxes(tileDesc, flx,fly,flz,lo, &
-!          Uin, Uout, del,timeEndAdv,dt,dtOld,sweepOrder)
-!   end subroutine f__raptor_truncate_op_func_hy_computeFluxes_fluxbuf
-
-!   subroutine f__raptor_truncate_op_func_hy_updateSolution_fluxbuf(from, to_e, to_m, &
-!        tileDesc, flx,fly,flz,lo, Uin, Uout, del,timeEndAdv,dt,dtOld,sweepOrder,updateMode)
-!     implicit none
-
-!     integer, intent(in) :: from, to_e, to_m
-
-!     type(Grid_tile_t), intent(IN)     :: tileDesc
-!     integer,intent(IN) :: lo(3)
-!     real,intent(OUT),dimension(1:, lo(1): ,lo(2): ,lo(3): ) :: flx, fly, flz
-!     real,pointer,dimension(:,:,:,:)   :: Uin
-!     real,pointer,dimension(:,:,:,:)   :: Uout
-!     real,dimension(MDIM),intent(IN)   :: del
-!     real,    intent(IN)               :: timeEndAdv, dt, dtOld
-!     integer, intent(IN)               :: sweepOrder
-!     integer, intent(IN),OPTIONAL      :: updateMode
-
-!     call hy_updateSolution(tileDesc, flx,fly,flz,lo, &
-!          Uin, Uout, del,timeEndAdv,dt,dtOld,sweepOrder,updateMode)
-!   end subroutine f__raptor_truncate_op_func_hy_updateSolution_fluxbuf
-! end module truncate_Hydro
-
 #define ENABLE_TRUNC_HYDRO
 #define TRUNC_FROM 64
 #define TRUNC_TO_E 11
@@ -131,8 +82,7 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
   use Grid_iterator,       ONLY : Grid_iterator_t
   use Grid_tile,           ONLY : Grid_tile_t
 
-  !RAPTOR truncate function definitions
-  ! use truncate_hydro
+  !RAPTOR
   use iso_c_binding
   use hy_interface, ONLY : hy_computeFluxes_fluxbuf, hy_updateSolution_fluxbuf
 
@@ -190,7 +140,7 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
   real :: del(1:MDIM)
 
 
-!RAPTOR
+  !RAPTOR wrapper interfaces
   interface
      function f__raptor_truncate_op_func(tfunc, from_ieee, to_type, to_exponent, to_significand) &
           result (fty) bind (c)

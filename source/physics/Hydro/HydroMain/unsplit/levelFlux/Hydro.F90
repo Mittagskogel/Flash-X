@@ -17,47 +17,6 @@
 #include "Simulation.h"
 #include "constants.h"
 
-module truncate_Hydro
-  use Grid_tile
-  use hy_interface
-
-  implicit none
-  public :: f__enzyme_truncate_op_func_hy_computeFluxes
-  public :: f__enzyme_truncate_op_func_hy_updateSolution
-contains
-
-  subroutine f__enzyme_truncate_op_func_hy_computeFluxes(from, to_e, to_m, &
-       tileDesc, Uin, Uout, del, timeEndAdv, dt, dtOld, sweepOrder)
-    implicit none
-
-    integer, intent(in) :: from, to_e, to_m
-
-    type(Grid_tile_t), intent(in) :: tileDesc
-    real, pointer, dimension(:,:,:,:) :: Uout,Uin
-    real,    INTENT(IN) :: timeEndAdv, dt, dtOld
-    integer, INTENT(IN) :: sweepOrder
-    real,dimension(MDIM),intent(IN) :: del
-
-    call hy_computeFluxes(tileDesc, Uin, Uout, del, timeEndAdv, dt, dtOld, sweepOrder)
-  end subroutine f__enzyme_truncate_op_func_hy_computeFluxes
-
-  subroutine f__enzyme_truncate_op_func_hy_updateSolution(from, to_e, to_m, &
-       tileDesc, Uin, Uout, del, timeEndAdv, dt, dtOld, sweepOrder)
-    implicit none
-
-    integer, intent(in) :: from, to_e, to_m
-
-    type(Grid_tile_t),intent(in) :: tileDesc
-    real, pointer, dimension(:,:,:,:) :: Uout,Uin
-    real,    INTENT(IN) :: timeEndAdv, dt, dtOld
-    integer, INTENT(IN) :: sweepOrder
-    real,dimension(MDIM),intent(IN) :: del
-
-    call hy_updateSolution(tileDesc, Uin, Uout, del, timeEndAdv, dt, dtOld, sweepOrder)
-  end subroutine f__enzyme_truncate_op_func_hy_updateSolution
-
-end module truncate_Hydro
-
 !#define ENABLE_TRUNC_HYDRO
 #define TRUNC_FROM 64
 #define TRUNC_TO_E 11
@@ -104,8 +63,8 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
   use Grid_iterator,       ONLY : Grid_iterator_t
   use Grid_tile,           ONLY : Grid_tile_t
 
-  !Enzyme truncate function definitions
-  use truncate_Hydro
+  !RAPTOR
+  use iso_c_binding
 
   implicit none
 
@@ -135,6 +94,44 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
   real :: del(1:MDIM)
 
   logical :: useTiling
+
+
+  !RAPTOR wrapper interfaces
+  interface
+     function f__raptor_truncate_op_func(tfunc, from_ieee, to_type, to_exponent, to_significand) &
+          result (fty) bind (c)
+       use iso_c_binding
+       implicit none
+
+       integer(c_int), intent(in), value :: from_ieee, to_type, to_exponent, to_significand
+       type(c_funptr), intent(in), value :: tfunc
+       type(c_funptr) :: fty
+     end function f__raptor_truncate_op_func
+     function f__raptor_truncate_op_func_ieee(tfunc, from_ieee, to_type, to_ieee) &
+          result (fty) bind (c)
+       use iso_c_binding
+       implicit none
+
+       integer(c_int), intent(in), value :: from_ieee, to_type, to_ieee
+       type(c_funptr), intent(in), value :: tfunc
+       type(c_funptr) :: fty
+     end function f__raptor_truncate_op_func_ieee
+  end interface
+
+  procedure(hy_computeFluxes), pointer :: tr_computeFluxes
+  procedure(hy_updateSolution), pointer :: tr_updateSolution
+  type(c_funptr) :: cptr
+
+  cptr = c_funloc(hy_computeFluxes)
+  cptr = f__raptor_truncate_op_func(cptr, TRUNC_FROM, 1, TRUNC_TO_E, TRUNC_TO_M)
+  ! cptr = f__raptor_truncate_op_func_ieee(cptr, TRUNC_FROM, 0, 32)
+  call c_f_procpointer(cptr, tr_computeFluxes)
+
+  cptr = c_funloc(hy_updateSolution)
+  cptr = f__raptor_truncate_op_func(cptr, TRUNC_FROM, 1, TRUNC_TO_E, TRUNC_TO_M)
+  ! cptr = f__raptor_truncate_op_func_ieee(cptr, TRUNC_FROM, 0, 32)
+  call c_f_procpointer(cptr, tr_updateSolution)
+
 
   nullify(Uin)
   nullify(Uout)
@@ -255,9 +252,7 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
 #ifdef ENABLE_TRUNC_HYDRO
         level = tileDesc%level
         if (level <= maxLev-LVL_OFFSET) then
-           call f__enzyme_truncate_op_func_hy_computeFluxes( &
-                TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M, &
-                tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
+           call tr_computeFluxes(tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
         else
            call hy_computeFluxes(tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
         end if
@@ -292,9 +287,7 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
         end if
 #ifdef ENABLE_TRUNC_HYDRO
         if (level <= maxLev-LVL_OFFSET) then
-           call f__enzyme_truncate_op_func_hy_computefluxes( &
-                TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M, &
-                tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
+           call tr_computeFluxes(tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
         else
            call hy_computeFluxes(tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
         end if
@@ -333,9 +326,7 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
         Uin => Uout
 #ifdef ENABLE_TRUNC_HYDRO
         if (level <= maxLev-LVL_OFFSET) then
-           call f__enzyme_truncate_op_func_hy_updateSolution( &
-                TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M, &
-                tileDesc,Uin, Uout, del,simTime, dt, dtOld,  sweepDummy)
+           call tr_updateSolution(tileDesc,Uin, Uout, del,simTime, dt, dtOld,  sweepDummy)
         else
            call hy_updateSolution(tileDesc,Uin, Uout, del,simTime, dt, dtOld,  sweepDummy)
         end if
@@ -376,9 +367,8 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
            end if
 #ifdef ENABLE_TRUNC_HYDRO
            if (level <= maxLev-LVL_OFFSET) then
-              call f__enzyme_truncate_op_func_hy_computeFluxes( &
-                   TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M, &
-                   tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
+              call tr_computeFluxes(tileDesc, Uin, Uout, &
+                                    del, simTime, dt, dtOld, sweepDummy)
            else
               call hy_computeFluxes(tileDesc, Uin, Uout, &
                                     del, simTime, dt, dtOld, sweepDummy)
@@ -424,9 +414,7 @@ subroutine Hydro(simTime, dt, dtOld, sweeporder)
            Uin => Uout
 #ifdef ENABLE_TRUNC_HYDRO
            if (level <= maxLev-LVL_OFFSET) then
-              call f__enzyme_truncate_op_func_hy_updateSolution( &
-                   TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M, &
-                   tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
+              call tr_updateSolution(tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
            else
               call hy_updateSolution(tileDesc, Uin, Uout, del, simTime, dt, dtOld, sweepDummy)
            end if
