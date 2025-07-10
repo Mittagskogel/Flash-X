@@ -23,15 +23,9 @@ jobs=()
 # Premake and specifically fail fast in the linking stage (missing mpfr.o)
 premake=${rundir}/premake
 mkdir -p ${premake}
-./setup ${setup_cmd} -objdir=${premake} -parfile=${parfile} -site=raptor > setup.log 2>&1
+${BASE_PATH}/setup ${setup_cmd} -objdir=${premake} -parfile=${parfile} -site=raptor > setup.log 2>&1
 mv setup.log ${premake}/setup.log
 make -j -C ${premake} > ${premake}/make.log 2>&1 || true
-
-# Add mpfr.o to premake directory
-cp ${BASE_PATH}/Enzyme/enzyme/include/enzyme/fprt/mpfr.h ${premake}/mpfr.cpp
-clang++ -c ${premake}/mpfr.cpp $(pkg-config --cflags mpfr gmp) \
-    -I${BASE_PATH}/Enzyme/enzyme/include/enzyme/fprt/ \
-    -o ${premake}/mpfr.o
 
 for offset in ${offsets[@]}
 do
