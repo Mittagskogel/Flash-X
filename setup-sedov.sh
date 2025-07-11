@@ -8,7 +8,7 @@ offsets=(0 1 2 3)
 mantissas=($(seq 5 1 53))
 
 # Setup command
-setup_cmd="Sedov -auto -2d +uhd +pm4dev +nolwf"
+setup_cmd="Sedov -auto -2d +uhd +pm4dev +nolwf -portable"
 # Paramter file
 parfile="tests/test_amr_2d.par"
 # Directory for automatic experiment runner
@@ -23,7 +23,7 @@ jobs=()
 # Premake and specifically fail fast in the linking stage (missing mpfr.o)
 premake=${rundir}/premake
 mkdir -p ${premake}
-${BASE_PATH}/setup ${setup_cmd} -objdir=${premake} -parfile=${parfile} -site=raptor > setup.log 2>&1
+${BASE_PATH}/Flash-X/setup ${setup_cmd} -objdir=${premake} -parfile=${parfile} -site=raptor > setup.log 2>&1
 mv setup.log ${premake}/setup.log
 make -j -C ${premake} > ${premake}/make.log 2>&1 || true
 

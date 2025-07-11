@@ -87,7 +87,7 @@ subroutine TimeAdvance(dt, dtold, time)
    cptr = c_funloc(Burn)
    cptr = f__raptor_truncate_op_func(cptr, TRUNC_FROM, 1, TRUNC_TO_E, TRUNC_TO_M)
    ! cptr = f__raptor_truncate_op_func(cptr, TRUNC_FROM, 0, 32)
-   call c_f_procpointer(cptr, tr_computeFluxes)
+   call c_f_procpointer(cptr, tr_Burn)
 
 
    call Hydro(time, dt, dtOld)
