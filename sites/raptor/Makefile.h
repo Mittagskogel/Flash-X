@@ -109,7 +109,8 @@ LFLAGS_OPT   = -g -O3 \
      -L/scratch/fhrold/spack/opt/spack/linux-rocky9-zen2/gcc-11.4.1/mpfr-4.2.1-2aivvsalcuno6mvp2lyuta3glkp3o6v2/lib -lmpfr \
      -L/scratch/fhrold/spack/opt/spack/linux-rocky9-zen2/gcc-11.4.1/gmp-6.3.0-kyy5q7hr34p4dr2aftntqw2z6pmkc7ja/lib -lgmp \
      -L${BASE_PATH}/raptor-install/lib \
-     -lstdc++ -lmpfr -lRaptor-RT-20\
+     -lstdc++ -lmpfr -lRaptor-RT-20 \
+     -Wl,-mllvm -Wl,-raptor-truncate-count \
      -o
 LFLAGS_DEBUG = -g -O0 -o
 LFLAGS_TEST  = -g -O0 -o
