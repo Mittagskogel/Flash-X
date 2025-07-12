@@ -53,7 +53,7 @@
 module truncate_helpers
   implicit none
   interface
-     function f__enzyme_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -62,11 +62,11 @@ module truncate_helpers
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_truncate_mem_value
+     end function f__raptor_truncate_mem_value
   end interface
 
   interface
-     function f__enzyme_expand_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_expand_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -75,33 +75,33 @@ module truncate_helpers
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_expand_mem_value
+     end function f__raptor_expand_mem_value
   end interface
 
   interface
-     function f_enzyme_reset_shadow_trace() result(count) bind(c)
+     function f_raptor_reset_shadow_trace() result(count) bind(c)
        use, intrinsic :: iso_c_binding, only: c_long_long
        implicit none
 
        integer(c_long_long) :: count
-     end function f_enzyme_reset_shadow_trace
+     end function f_raptor_reset_shadow_trace
   end interface
 
   interface
-     subroutine enzyme_fprt_excl_trunc_start() bind(c)
+     subroutine raptor_fprt_excl_trunc_start() bind(c)
        implicit none
-     end subroutine enzyme_fprt_excl_trunc_start
+     end subroutine raptor_fprt_excl_trunc_start
   end interface
 
   interface
-     subroutine enzyme_fprt_excl_trunc_end() bind(c)
+     subroutine raptor_fprt_excl_trunc_end() bind(c)
        implicit none
-     end subroutine enzyme_fprt_excl_trunc_end
+     end subroutine raptor_fprt_excl_trunc_end
   end interface
 
   public :: truncate_0d, truncate_1d, truncate_2d, truncate_3d, truncate_4d
-  public :: f__enzyme_truncate_mem_func_hy_recon
-  public :: f__enzyme_truncate_mem_func_hy_riemann
+  public :: f__raptor_truncate_mem_func_hy_recon
+  public :: f__raptor_truncate_mem_func_hy_riemann
   contains
     subroutine truncate_1d(x)
       real, intent(inout) :: x(:)
@@ -110,7 +110,7 @@ module truncate_helpers
       n = size(x)
 
       do i=1,n
-         x(i) = f__enzyme_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+         x(i) = f__raptor_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
       end do
     end subroutine truncate_1d
 
@@ -157,7 +157,7 @@ module truncate_helpers
       n = size(x)
 
       do i=1,n
-         x(i) = f__enzyme_expand_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+         x(i) = f__raptor_expand_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
       end do
     end subroutine expand_1d
 
@@ -197,7 +197,7 @@ module truncate_helpers
       x = reshape(tmp, [size(x, 1), size(x, 2), size(x, 3), size(x, 4)])
     end subroutine expand_4d
 
-    subroutine f__enzyme_truncate_mem_func_hy_recon(from, to_e, to_m, &
+    subroutine f__raptor_truncate_mem_func_hy_recon(from, to_e, to_m, &
          scr_rope, scr_uPlus, scr_uMinus, flat3d, loGC, is, js, ks, i,j,k,v)
       implicit none
 
@@ -210,9 +210,9 @@ module truncate_helpers
       real, dimension(loGC(1):, loGC(2):, loGC(3):), intent(IN) :: flat3d
 
       call hy_recon(scr_rope, scr_uPlus, scr_uMinus, flat3d, loGC, is, js, ks, i,j,k,v)
-    end subroutine f__enzyme_truncate_mem_func_hy_recon
+    end subroutine f__raptor_truncate_mem_func_hy_recon
 
-    subroutine f__enzyme_truncate_mem_func_hy_riemann(from, to_e, to_m, &
+    subroutine f__raptor_truncate_mem_func_hy_riemann(from, to_e, to_m, &
          dir,VL,VR,inShock,Fstar,speed)
 #include "Simulation.h"
 #include "constants.h"
@@ -228,7 +228,7 @@ module truncate_helpers
       real,    intent(OUT) :: speed
 
       call hy_riemann(dir,VL,VR,inShock,Fstar,speed)
-    end subroutine f__enzyme_truncate_mem_func_hy_riemann
+    end subroutine f__raptor_truncate_mem_func_hy_riemann
 
 end module truncate_helpers
 
@@ -249,7 +249,7 @@ subroutine hy_rk_getFaceFlux (stage, starState, flat3d, flx, fly, flz, &
                          mp5ZeroTol => hy_mp5ZeroTol
   use hy_rk_interface, ONLY : hy_recon, hy_riemann
 
-  ! Enzyme
+  ! Raptor
   use truncate_helpers
 
   implicit none
@@ -350,7 +350,7 @@ subroutine hy_rk_getFaceFlux (stage, starState, flat3d, flx, fly, flz, &
      call truncate_4d(scr_uMinus)
 #else
 #ifdef EXCLUDE_RECON
-     call enzyme_fprt_excl_trunc_start()
+     call raptor_fprt_excl_trunc_start()
 #endif
      do k = limits(LOW,KAXIS,stage)-1*ks, limits(HIGH,KAXIS,stage)+1*ks
         do j = limits(LOW,JAXIS,stage)-1*js, limits(HIGH,JAXIS,stage)+1*js
@@ -362,7 +362,7 @@ subroutine hy_rk_getFaceFlux (stage, starState, flat3d, flx, fly, flz, &
         enddo
      enddo
 #ifdef EXCLUDE_RECON
-     call enzyme_fprt_excl_trunc_end()
+     call raptor_fprt_excl_trunc_end()
 #endif
 #endif
      ! call Timers_stop("recon")
@@ -394,7 +394,7 @@ subroutine hy_rk_getFaceFlux (stage, starState, flat3d, flx, fly, flz, &
      do k = limits(LOW,KAXIS,stage), limits(HIGH,KAXIS,stage)+1*ks
      do j = limits(LOW,JAXIS,stage), limits(HIGH,JAXIS,stage)+1*js
      do i = limits(LOW,IAXIS,stage), limits(HIGH,IAXIS,stage)+1*is
-        ! err_tmp = f_enzyme_reset_shadow_trace()
+        ! err_tmp = f_raptor_reset_shadow_trace()
         VL = scr_uPlus(1:HY_NUM_VARS,i-is,j-js,k-ks)
         VR = scr_uMinus(1:HY_NUM_VARS,i,j,k)
         inShock = .false.
@@ -417,17 +417,17 @@ subroutine hy_rk_getFaceFlux (stage, starState, flat3d, flx, fly, flz, &
         call truncate_0d(C_hyp)
 #else
 #ifdef EXCLUDE_RIEMANN
-        call enzyme_fprt_excl_trunc_start()
+        call raptor_fprt_excl_trunc_start()
 #endif
         call hy_riemann(dir,VL,VR,inShock,Fstar,speed)
 #ifdef EXCLUDE_RIEMANN
-        call enzyme_fprt_excl_trunc_end()
+        call raptor_fprt_excl_trunc_end()
 #endif
 #endif
         scr_flux(1:HY_NUM_FLUX,i,j,k) = Fstar(1:HY_NUM_FLUX)
         ! print *, err_tmp, "errors after reset,", &
         !      "inShock =", inShock, "and", &
-        !      f_enzyme_reset_shadow_trace(), "errors in hy_rk_getFaceFlux.F90"
+        !      f_raptor_reset_shadow_trace(), "errors in hy_rk_getFaceFlux.F90"
      enddo
      enddo
      enddo

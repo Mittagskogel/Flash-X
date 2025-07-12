@@ -39,7 +39,7 @@
 module truncate_Hydro_advance
   implicit none
   interface
-     function f__enzyme_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -48,11 +48,11 @@ module truncate_Hydro_advance
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_truncate_mem_value
+     end function f__raptor_truncate_mem_value
   end interface
 
   interface
-     function f__enzyme_expand_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_expand_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -61,32 +61,32 @@ module truncate_Hydro_advance
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_expand_mem_value
+     end function f__raptor_expand_mem_value
   end interface
 
   interface
-     function f__enzyme_reset_shadow_trace() result(count) bind(c)
+     function f__raptor_reset_shadow_trace() result(count) bind(c)
        use, intrinsic :: iso_c_binding, only: c_long_long
        implicit none
 
        integer(c_long_long) :: count
-     end function f__enzyme_reset_shadow_trace
+     end function f__raptor_reset_shadow_trace
   end interface
 
   interface
-     subroutine enzyme_fprt_excl_trunc_start() bind(c)
+     subroutine raptor_fprt_excl_trunc_start() bind(c)
        implicit none
-     end subroutine enzyme_fprt_excl_trunc_start
+     end subroutine raptor_fprt_excl_trunc_start
   end interface
 
   interface
-     subroutine enzyme_fprt_excl_trunc_end() bind(c)
+     subroutine raptor_fprt_excl_trunc_end() bind(c)
        implicit none
-     end subroutine enzyme_fprt_excl_trunc_end
+     end subroutine raptor_fprt_excl_trunc_end
   end interface
 
   public :: truncate_0d, truncate_1d, truncate_2d, truncate_3d, truncate_4d
-  public :: f__enzyme_truncate_mem_func_hy_rk_getFaceFlux
+  public :: f__raptor_truncate_mem_func_hy_rk_getFaceFlux
   contains
     subroutine truncate_1d(x)
       real, intent(inout) :: x(:)
@@ -95,7 +95,7 @@ module truncate_Hydro_advance
       n = size(x)
 
       do i=1,n
-         x(i) = f__enzyme_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+         x(i) = f__raptor_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
       end do
     end subroutine truncate_1d
 
@@ -142,7 +142,7 @@ module truncate_Hydro_advance
       n = size(x)
 
       do i=1,n
-         x(i) = f__enzyme_expand_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+         x(i) = f__raptor_expand_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
       end do
     end subroutine expand_1d
 
@@ -182,7 +182,7 @@ module truncate_Hydro_advance
       x = reshape(tmp, [size(x, 1), size(x, 2), size(x, 3), size(x, 4)])
     end subroutine expand_4d
 
-    subroutine f__enzyme_truncate_mem_func_hy_rk_getFaceFlux(from, to_e, to_m, &
+    subroutine f__raptor_truncate_mem_func_hy_rk_getFaceFlux(from, to_e, to_m, &
          stage, starState, flat3d, flx, fly, flz, &
          limits, deltas, &
          scr_rope, scr_flux, scr_uPlus, scr_uMinus, &
@@ -208,7 +208,7 @@ module truncate_Hydro_advance
          limits, deltas, &
          scr_rope, scr_flux, scr_uPlus, scr_uMinus, &
          loGC)
-    end subroutine f__enzyme_truncate_mem_func_hy_rk_getFaceFlux
+    end subroutine f__raptor_truncate_mem_func_hy_rk_getFaceFlux
   end module truncate_Hydro_advance
 
 subroutine Hydro_advance(stage_in, Uin, dt, dtOld, &
@@ -238,11 +238,11 @@ subroutine Hydro_advance(stage_in, Uin, dt, dtOld, &
    use Eos_interface, ONLY : Eos_multiDim
    use Burn_interface, ONLY : Burn_update
 
-   ! Enzyme
+   ! Raptor
    use truncate_Hydro_advance
    use Eos_data, only: eos_truncate
 
-   ! Enzyme, for getFaceFlux expansion
+   ! Raptor, for getFaceFlux expansion
    use Hydro_data, ONLY : hy_cvisc, &
                           hy_C_hyp, &
                           hy_tiny, &
@@ -292,7 +292,7 @@ subroutine Hydro_advance(stage_in, Uin, dt, dtOld, &
    integer :: stage, ng, dir
    integer, parameter :: last_stage = MAXSTAGE
 
-   !Enzyme
+   !Raptor
 #ifdef DISABLE_TRUNC_GETFACEFLUX
    real, dimension(MDIM) :: expand_deltas
    expand_deltas = deltas
@@ -321,14 +321,14 @@ subroutine Hydro_advance(stage_in, Uin, dt, dtOld, &
       ! calculate gravitational acceleration based on current value of GPOT_VAR
       ! This is stored in scratch variable hy_grav
       ! print *, "stage", stage
-      ! print *, f_enzyme_reset_shadow_trace(), "errors at beginning of Hydro_advance."
+      ! print *, f_raptor_reset_shadow_trace(), "errors at beginning of Hydro_advance."
       call hy_rk_getGraveAccel(hy_starState, hy_grav, &
                                hy_xCenter, hy_yCenter, deltas, &
                                blkLimitsGC, loGC)
-      ! print *, f_enzyme_reset_shadow_trace(), "errors in hy_rk_getGraveaccel"
+      ! print *, f_raptor_reset_shadow_trace(), "errors in hy_rk_getGraveaccel"
 
       call hy_rk_getFlatteningLimiter(stage, hy_starState, hy_flat3d, limits, loGC)
-      ! print *, f_enzyme_reset_shadow_trace(), "errors in hy_rk_getFlatteningLimiter"
+      ! print *, f_raptor_reset_shadow_trace(), "errors in hy_rk_getFlatteningLimiter"
 
 #ifdef DISABLE_TRUNC_GETFACEFLUX
 
@@ -381,12 +381,12 @@ subroutine Hydro_advance(stage_in, Uin, dt, dtOld, &
                              hy_rope, hy_flux, hy_uPlus, hy_uMinus, &
                              loGC)
 #endif
-      ! print *, f_enzyme_reset_shadow_trace(), "errors in hy_rk_getFaceFlux"
+      ! print *, f_raptor_reset_shadow_trace(), "errors in hy_rk_getFaceFlux"
       ! Now update solution based on conservative fluxes
       ! See select_RK_scheme() for explicit outline of C1, C2, & C3
       ! U* = C1 * U0 + C2 * U* + C3 * dt*L(U*)
 #ifdef EXCLUDE_UPDATESOLN
-      call enzyme_fprt_excl_trunc_start()
+      call raptor_fprt_excl_trunc_start()
 #endif
       call hy_rk_updateSoln(stage, hy_starState, hy_tmpState, &
                             hy_grav, hy_flx, hy_fly, hy_flz, &
@@ -394,14 +394,14 @@ subroutine Hydro_advance(stage_in, Uin, dt, dtOld, &
                             hy_xLeft, hy_xRight, hy_yLeft, hy_yRight, &
                             dt, dtOld, limits, lo, loGC)
 #ifdef EXCLUDE_UPDATESOLN
-      call enzyme_fprt_excl_trunc_end()
+      call raptor_fprt_excl_trunc_end()
 #endif
-      ! print *, f_enzyme_reset_shadow_trace(), "errors in hy_rk_updateSoln"
+      ! print *, f_raptor_reset_shadow_trace(), "errors in hy_rk_updateSoln"
       call hy_rk_saveFluxBuf(stage, hy_fluxBufX, hy_fluxBufY, hy_fluxBufZ, &
                              hy_flx, hy_fly, hy_flz, &
                              hy_fareaX, hy_fareaY, hy_fareaZ, &
                              blkLimits, lo, loGC)
-      ! print *, f_enzyme_reset_shadow_trace(), "errors in hy_rk_saveFluxBuf"
+      ! print *, f_raptor_reset_shadow_trace(), "errors in hy_rk_saveFluxBuf"
 #if NSPECIES>0
       !Properly normalize species after the update
       call hy_rk_renormAbundance(blkLimitsGC, hy_starState, loGC)

@@ -52,7 +52,7 @@
 module truncate_helpers
   implicit none
   interface
-     function f__enzyme_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -61,11 +61,11 @@ module truncate_helpers
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_truncate_mem_value
+     end function f__raptor_truncate_mem_value
   end interface
 
   interface
-     function f__enzyme_expand_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_expand_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -74,16 +74,16 @@ module truncate_helpers
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_expand_mem_value
+     end function f__raptor_expand_mem_value
   end interface
 
   interface
-     function f_enzyme_reset_shadow_trace() result(count) bind(c)
+     function f_raptor_reset_shadow_trace() result(count) bind(c)
        use, intrinsic :: iso_c_binding, only: c_long_long
        implicit none
 
        integer(c_long_long) :: count
-     end function f_enzyme_reset_shadow_trace
+     end function f_raptor_reset_shadow_trace
   end interface
 
   public :: truncate_0d, truncate_1d, truncate_2d, truncate_3d, truncate_4d
@@ -95,7 +95,7 @@ module truncate_helpers
       n = size(x)
 
       do i=1,n
-         x(i) = f__enzyme_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+         x(i) = f__raptor_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
       end do
     end subroutine truncate_1d
 
@@ -142,7 +142,7 @@ module truncate_helpers
       n = size(x)
 
       do i=1,n
-         x(i) = f__enzyme_expand_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+         x(i) = f__raptor_expand_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
       end do
     end subroutine expand_1d
 
@@ -198,7 +198,7 @@ subroutine hy_rk_correctFluxes(Uin, blkLimits, &
   use Driver_interface, ONLY : Driver_abort
   use Eos_interface, ONLY : Eos_multiDim,Eos
 
-  ! Enzyme
+  ! Raptor
   use truncate_helpers
 
   implicit none

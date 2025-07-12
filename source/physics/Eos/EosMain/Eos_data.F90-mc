@@ -82,6 +82,6 @@ module Eos_data
   @M eos_DIR_declare_data([eos_eintSwitch, eos_tol, eos_smallt, eos_largeT, eos_smallRho])
   @M eos_DIR_declare_data([eos_doYe])
 
-  ! Enzyme
+  ! Raptor
   logical, save :: eos_truncate = .false.
 end module Eos_data

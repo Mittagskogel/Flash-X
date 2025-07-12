@@ -43,7 +43,7 @@
 module truncate_Eos_multiDim
   implicit none
   interface
-     function f__enzyme_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_truncate_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -52,11 +52,11 @@ module truncate_Eos_multiDim
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_truncate_mem_value
+     end function f__raptor_truncate_mem_value
   end interface
 
   interface
-     function f__enzyme_expand_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
+     function f__raptor_expand_mem_value(x, from, to_e, to_m) result(p_x) bind(c)
        use, intrinsic :: iso_c_binding, only: c_double, c_int
        implicit none
 
@@ -65,7 +65,7 @@ module truncate_Eos_multiDim
        real(c_double), intent(in), value :: x
        integer(c_int), intent(in), value :: from, to_e, to_m
        double precision :: p_x
-     end function f__enzyme_expand_mem_value
+     end function f__raptor_expand_mem_value
   end interface
 
   public :: truncate_0d, truncate_1d, truncate_2d
@@ -77,7 +77,7 @@ contains
     n = size(x)
 
     do i=1,n
-       x(i) = f__enzyme_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
+       x(i) = f__raptor_truncate_mem_value(x(i), TRUNC_FROM, TRUNC_TO_E, TRUNC_TO_M)
     end do
   end subroutine truncate_1d
 
@@ -106,7 +106,7 @@ subroutine Eos_multiDim(mode,range,lo,solnData @M eos_scratchArgs)
   use Driver_interface, ONLY : Driver_abort
   use Eos_interface, ONLY : Eos_fillEosData, Eos_getFromEosData, Eos_vector
 
-  ! Enzyme truncate Eos functions
+  ! Raptor truncate Eos functions
 #ifdef ENABLE_TRUNC_EOS
   use truncate_Eos_multiDim
   use Eos_data, only: eos_truncate
