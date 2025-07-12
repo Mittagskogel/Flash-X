@@ -27,7 +27,7 @@
 !#define ENABLE_TRUNC_HYDRO
 #define TRUNC_FROM 64
 #define TRUNC_TO_E 5
-#define TRUNC_TO_M 13
+#define TRUNC_TO_M 12
 
 module truncate_Hydro
   implicit none

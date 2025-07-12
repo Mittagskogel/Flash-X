@@ -5,7 +5,7 @@ set -e
 # List of offsets for AMR levels
 offsets=(0 1 2 3)
 # List of mantissas
-mantissas=($(seq 5 1 53))
+mantissas=($(seq 4 1 52))
 
 # Setup command
 setup_cmd="Sedov -portable -auto -2d +uhd +pm4dev +nolwf"
