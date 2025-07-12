@@ -146,7 +146,7 @@ function tex_wrapper () {
 " > "${1}-figure.tex"
 
     pdflatex "${1}-figure.tex"
-    rm "figures/${1}-bt-eps-converted-to.pdf"
+    rm "figures/${1}-eps-converted-to.pdf"
     rm "${1}-figure.aux"
     rm "${1}-figure.log"
     mv "${1}-figure.pdf" "figures/${1}-figure.pdf"
