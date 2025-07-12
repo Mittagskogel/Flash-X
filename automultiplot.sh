@@ -6,7 +6,7 @@ function gnuplot_gen () {
     input="$3"
     extras="$4"
 
-    sed 's/##FILENAME##/'"${filename}"'/' automultiplot-header.gp | \
+    sed 's/##FILENAME##/'"${filename}"'/' ${BASE_PATH}/Flash-X/automultiplot-header.gp | \
         sed 's/##TITLE##/'"${title}"'/' | sed '50a\'"${extras}"
 
     # Autodetect columns in input

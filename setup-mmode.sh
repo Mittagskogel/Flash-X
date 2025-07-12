@@ -8,10 +8,11 @@ function setup_flashx () {
 
     echo -n "Setup ${objdir}: "
 
-    setup_cmd="Sedov -auto -2d +sparkbase2d"
+    setup_cmd="Sedov -portable -auto -2d +sparkbase2d"
     parfile="tests/test_amr_spark_2d.par"
 
-    ./setup ${setup_cmd} -objdir=${objdir} -parfile=${parfile} -site=raptor-debug > setup.log 2>&1
+    ${BASE_PATH}/Flash-X/setup ${setup_cmd} \
+        -objdir=${PWD}/${objdir} -parfile=${parfile} -site=raptor-debug > setup.log 2>&1
     mv setup.log ${objdir}/setup.log
 
     if ! grep "SUCCESS" "${objdir}/setup.log"
@@ -28,21 +29,14 @@ function build_flashx () {
 
     echo -n "Build ${objdir}: "
 
-    # Fail fast (missing mpfr.o)
-    make -C "${objdir}" -j >& /dev/null || true
+    make -C "${objdir}" -j >& /dev/null
     # Rebuild EOS without LTO
     cd ${objdir}
     ${BASE_PATH}/openmpi-5.0.6-install/bin/mpif90 -c -g -O2 -fdefault-real-8 -fdefault-double-8 \
         -DMAXBLOCKS=1000 -DNXB=16 -DNYB=16 -DNZB=1 -DN_DIM=2 Eos_multiDim.F90 -o Eos_multiDim.o
     cd - >& /dev/null
-    # Fetch and compile mpfr.o
-    cp ${BASE_PATH}/Enzyme/enzyme/include/enzyme/fprt/mpfr.h ${objdir}/mpfr.cpp
-    clang++ -c ${objdir}/mpfr.cpp $(pkg-config --cflags mpfr gmp) \
-        -I${BASE_PATH}/Enzyme/enzyme/include/enzyme/fprt/ \
-        -DENZYME_FPRT_ENABLE_SHADOW_RESIDUALS \
-        -o ${objdir}/mpfr.o
 
-    # Finish build
+    # Rebuild Flash-X
     make -C "${objdir}" -j >& "${objdir}/make.log"
 
     if ! grep "SUCCESS" "${objdir}/make.log"

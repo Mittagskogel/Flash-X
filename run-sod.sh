@@ -11,12 +11,12 @@ mantissas=($(seq 5 1 53))
 rundir=autorun.sod
 
 # Launch command for Flash-X
-launch_cmd="srun -n 1 --exclusive"
-# launch_cmd="mpirun -n 1"
+# launch_cmd="srun -n 1 --exclusive"
+launch_cmd="mpirun -n 1 --bind-to none"
 
 
 
-jobs=()
+jobs=(${rundir}/reference)
 
 for offset in ${offsets[@]}
 do
@@ -35,4 +35,4 @@ parallel --progress cd {} "&&" \
     ::: ${jobs[@]}
 
 success=$(grep -R "FLASH run complete" ${rundir} |& grep sod.log | wc -l)
-echo "${success}/$(( ${#offsets[@]} * ${#mantissas[@]} )) runs successful."
+echo "${success}/$(( ${#offsets[@]} * ${#mantissas[@]} + 1)) runs successful."

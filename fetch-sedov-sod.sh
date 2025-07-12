@@ -89,7 +89,7 @@ function fetch_batch () {
 mkdir -p plots
 
 fetch_batch 0 2 0001 0001 dens \
-    ${BASE_PATH}/Flash-X/autorun.sod plots/sod
+    autorun.sod plots/sod
 
 fetch_batch 0 3 0001 0001 dens \
-    ${BASE_PATH}/Flash-X/autorun.sedov plots/sedov
+    autorun.sedov plots/sedov

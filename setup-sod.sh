@@ -8,7 +8,7 @@ offsets=(0 1 2)
 mantissas=($(seq 5 1 53))
 
 # Setup command
-setup_cmd="Sod -auto -2d +uhd +pm4dev +nolwf"
+setup_cmd="Sod -portable -auto -2d +uhd +pm4dev +nolwf"
 # Paramter file
 parfile="tests/test_amr_unsplit_2d.par"
 # Directory for automatic experiment runner
@@ -20,18 +20,13 @@ mkdir -p $rundir
 
 jobs=()
 
-# Premake and specifically fail fast in the linking stage (missing mpfr.o)
-premake=${rundir}/premake
-mkdir -p ${premake}
-./setup ${setup_cmd} -objdir=${premake} -parfile=${parfile} -site=raptor > setup.log 2>&1
-mv setup.log ${premake}/setup.log
-make -j -C ${premake} > ${premake}/make.log 2>&1 || true
-
-# Add mpfr.o to premake directory
-cp ${BASE_PATH}/Enzyme/enzyme/include/enzyme/fprt/mpfr.h ${premake}/mpfr.cpp
-clang++ -c ${premake}/mpfr.cpp $(pkg-config --cflags mpfr gmp) \
-    -I${BASE_PATH}/Enzyme/enzyme/include/enzyme/fprt/ \
-    -o ${premake}/mpfr.o
+# Reference and specifically fail fast in the linking stage (missing mpfr.o)
+reference=${rundir}/reference
+mkdir -p ${reference}
+${BASE_PATH}/Flash-X/setup ${setup_cmd} \
+    -objdir=${PWD}/${reference} -parfile=${parfile} -site=raptor > setup.log 2>&1
+mv setup.log ${reference}/setup.log
+make -j -C ${reference} > ${reference}/make.log 2>&1
 
 for offset in ${offsets[@]}
 do
@@ -48,7 +43,7 @@ do
 
         # Setup the problem directory
         mkdir -p ${objdir}
-        cp -ra ${premake}/* ${objdir}/
+        cp -ra ${reference}/* ${objdir}/
 
         # Update preprocessor variables in Hydro
         sed -i 's/\!#define ENABLE_TRUNC_HYDRO/#define ENABLE_TRUNC_HYDRO/' ${objdir}/Hydro.F90
@@ -63,4 +58,4 @@ done
 parallel --progress make -C {} ">" {}/make.log "2>&1" ::: ${jobs[@]}
 
 success=$(grep -R "SUCCESS" ${rundir} |& grep make.log | wc -l)
-echo "${success}/$(( ${#offsets[@]} * ${#mantissas[@]} )) builds successful."
+echo "${success}/$(( ${#offsets[@]} * ${#mantissas[@]} + 1 )) builds successful."

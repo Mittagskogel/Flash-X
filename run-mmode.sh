@@ -4,8 +4,8 @@
 EXP_PROCS=32
 
 # Launch command for Flash-X
-launch_cmd="srun -n ${EXP_PROCS} --exclusive"
-# launch_cmd="mpirun -n ${EXP_PROCS}"
+# launch_cmd="srun -n ${EXP_PROCS} --exclusive"
+launch_cmd="mpirun -n ${EXP_PROCS} --bind-to none"
 
 jobs=(sedov_spark_reference \
       sedov_spark_baseline \
