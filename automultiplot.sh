@@ -141,6 +141,7 @@ function tex_wrapper () {
 \newcommand{\app}[1]{\textsc{#1}}
 
 \begin{document}
+  \noindent
   \input{figures/${1}.tex}
 \end{document}
 " > "${1}-figure.tex"
