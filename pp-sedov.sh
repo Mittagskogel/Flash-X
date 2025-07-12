@@ -12,7 +12,7 @@ steps=($(seq -w 0001 0001))
 # Directory for automatic experiment runner
 rundir=autorun.sedov
 # Directory for the reference solution
-reference=sedov_reference
+reference=${rundir}/reference
 
 
 
