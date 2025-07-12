@@ -144,6 +144,8 @@ function tex_wrapper () {
   \input{figures/${1}.tex}
 \end{document}
 " > "${1}-figure.tex"
+
+    pdflatex "${1}-figure.tex"
 }
 
 
