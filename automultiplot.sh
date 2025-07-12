@@ -131,9 +131,27 @@ set y2range [speedup_range_lo:speedup_range_hi]
     done
 }
 
+function tex_wrapper () {
+    echo "
+\documentclass{article}
+\usepackage[paperheight=149bp,paperwidth=242bp,margin=0bp]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\newcommand{\app}[1]{\textsc{#1}}
+
+\begin{document}
+  \input{figures/${1}.tex}
+\end{document}
+" > "${1}-figure.tex"
+}
+
 
 
 mkdir -p figures
 
 gnuplot_gen 'sod-bt' 'Sod' 'plots/sod_0001' | gnuplot
 gnuplot_gen 'sedov-bt' 'Sedov' 'plots/sedov_0001' | gnuplot
+
+tex_wrapper 'sod-bt'
+tex_wrapper 'sedov-bt'
