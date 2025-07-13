@@ -5,7 +5,7 @@ set -e
 # List of offsets for AMR levels
 offsets=(0 1 2)
 # List of mantissas
-mantissas=($(seq 5 1 53))
+mantissas=($(seq 4 1 52))
 # List of checkpoint timesteps
 steps=($(seq -w 0001 0001))
 
