@@ -30,7 +30,7 @@ function auto_extract () {
     # Get error from selected field in sfocu output
     for m in ${mantissas[@]}
     do
-        echo -n "$((m-1)) "
+        echo -n "${m} "
         for offset in ${offsets[@]}
         do
             echo -n $(sed -n '/object_ref'${offset}'_'${m}'bit/,/FAILURE\|SUCCESS/p' ./sfocu_ref${offset}*.out |\
