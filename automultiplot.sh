@@ -74,7 +74,7 @@ set y2range [0:flop_count_range]
         then
             echo "
 plot '${input}/perf_counts_ref${n}_0001.out' u 1:((\$2+\$3)/1e9) w boxes axes x1y2 ls 201 title '\\small{Full}', \
-     '' u (\$1-1):(\$2/1e9) w boxes axes x1y2 ls 202 title '\\small{Trunc}'
+     '' u 1:(\$2/1e9) w boxes axes x1y2 ls 202 title '\\small{Trunc}'
 
 unset label 1
 
@@ -86,7 +86,7 @@ set key maxrows 1 at character 16.0, character 11.6 right bottom samplen 1 spaci
         else
             echo "
 plot '${input}/perf_counts_ref${n}_0001.out' u 1:((\$2+\$3)/1e9) w boxes axes x1y2 ls 201 notitle, \
-     '' u (\$1-1):(\$2/1e9) w boxes axes x1y2 ls 202 notitle
+     '' u 1:(\$2/1e9) w boxes axes x1y2 ls 202 notitle
 
 set format y ''
 set ytics
