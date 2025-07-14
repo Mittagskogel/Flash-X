@@ -112,7 +112,7 @@ set y2range [speedup_range_lo:speedup_range_hi]
         then
             echo "plot '${input}/plot-data.out' u 1:2 w l ls 290 notitle, \\"
 
-            for p in $(seq 3 ${ncols})
+            for p in $(seq 3 $((ncols+2)))
             do
                 echo "'${input}/plot-data.out' u 1:${p} w l ls 290 notitle, \\"
             done
@@ -121,7 +121,7 @@ set y2range [speedup_range_lo:speedup_range_hi]
         else
             echo "plot '${input}/plot-data.out' u 1:2 w l ls 290 notitle, \\"
 
-            for p in $(seq 3 ${ncols})
+            for p in $(seq 3 $((ncols+2)))
             do
                 echo "'${input}/plot-data.out' u 1:${p} w l ls 290 notitle, \\"
             done
